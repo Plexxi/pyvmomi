@@ -580,6 +580,19 @@ class ManagedMethod(Curry):
       Curry.__init__(self, ManagedObject._InvokeMethod, info)
       self.info = info
 
+## Dummy managed object and methods to workaround issue #182
+class DummyObject(Object):
+   pass
+
+class DummyManagedMethod(ManagedMethod):
+   def __init__(self, name):
+      self.name = name
+      info = DummyObject(name=name, type=DummyObject)
+      ManagedMethod.__init__(self, info)
+
+   def __call__(self, *args, **kwargs):
+      raise Exception("Managed method {} is not available".format(self.name))
+
 ## Create the vmodl.MethodFault type
 #
 # This type must be generated dynamically because it inherits from
@@ -1229,7 +1242,7 @@ def GuessWsdlMethod(name):
             return GetWsdlMethod(ns, name)
          except KeyError:
             pass
-      raise KeyError(name)
+      return DummyManagedMethod(name)
 
 ## Widen a type to one supported in a given version
 def GetCompatibleType(type, version):
